@@ -20,7 +20,7 @@ A Flask-based web application that helps manage lost and found items using compu
 
 1. Clone the repository:
 ```bash
-git clone [your-repository-url]
+git clone https://github.com/Samruddhi-Kala/Lost-and-Found-System-with-Object-Detection.git
 cd lostfound
 ```
 
@@ -61,4 +61,4 @@ lostfound/
 
 ## License
 
-[Your chosen license]
+MIT License
