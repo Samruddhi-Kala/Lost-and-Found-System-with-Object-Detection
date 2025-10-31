@@ -59,6 +59,3 @@ lostfound/
 4. Use "Submit Found Item" to report found items
 5. Admin interface available at `/admin`
 
-## License
-
-MIT License
