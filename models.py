@@ -11,22 +11,29 @@ import pytesseract
 import sys
 
 # Configure Tesseract
-TESSERACT_PATHS = [
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
-    r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
-    "/usr/bin/tesseract",
-    "/usr/local/bin/tesseract"
-]
+import logging
+logger = logging.getLogger(__name__)
 
 def setup_tesseract():
-    for path in TESSERACT_PATHS:
+    """Setup Tesseract OCR based on the operating system."""
+    if os.name == 'nt':  # Windows
+        tesseract_paths = [
+            r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+            r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe"
+        ]
+    else:  # Linux/Unix
+        tesseract_paths = [
+            "/usr/bin/tesseract",
+            "/usr/local/bin/tesseract"
+        ]
+
+    for path in tesseract_paths:
         if os.path.exists(path):
             pytesseract.pytesseract.tesseract_cmd = path
+            logger.info(f"Tesseract found at: {path}")
             return True
-    print("ERROR: Tesseract is not installed. Please install it from:")
-    print("https://github.com/UB-Mannheim/tesseract/wiki")
-    print("Download and install tesseract-ocr-w64-setup-v5.3.1.20230401.exe")
-    print("Make sure to check 'Add to PATH' during installation")
+
+    logger.warning("Tesseract not found. OCR features will be disabled.")
     return False
 
 # Try to setup Tesseract
@@ -120,6 +127,9 @@ class Pipeline:
 
     def ocr_extract(self, image: np.ndarray):
         """Extract text from image with detailed error handling."""
+        if not OCR_AVAILABLE:
+            logger.warning("OCR requested but Tesseract is not available")
+            return ""  # Return empty string when OCR is not available
         if not OCR_AVAILABLE:
             print("WARNING: OCR is disabled - Tesseract not found")
             return ""

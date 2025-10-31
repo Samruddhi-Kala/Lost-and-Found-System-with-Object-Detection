@@ -47,11 +47,16 @@ try:
     import cv2
     import pytesseract
     
-    # Set the path to Tesseract executable - Updated for v5.5.0
-    if os.path.exists(r'C:\Program Files\Tesseract-OCR\tesseract.exe'):
-        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    # Set the path to Tesseract executable based on the operating system
+    if os.name == 'nt':  # Windows
+        tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    else:  # Linux/Unix
+        tesseract_cmd = '/usr/bin/tesseract'
+    
+    if os.path.exists(tesseract_cmd):
+        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
     else:
-        raise RuntimeError("Tesseract not found in expected location. Please verify installation.")
+        logger.warning("Tesseract not found in standard location. OCR features will be disabled.")
     
     # Initialize DB and pipeline
     db.init_db()
