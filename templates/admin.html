@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Admin Dashboard</h2>
+
+<div class="admin-reports">
+  <section class="found-items">
+    <h3>Found Items</h3>
+    {% for item in found %}
+    <div class="report-card">
+      <p>ID: {{ item.id }}</p>
+      {% if item.image_path %}
+      <img src="{{ url_for('uploaded_file', filename=item.image_path.split('/')[-1]) }}" alt="Found item">
+      {% endif %}
+      <p>{{ item.description }}</p>
+      <p>Category: {{ item.category }}</p>
+      <p>Status: {{ 'Confirmed' if item.admin_confirmed else 'Pending' }}</p>
+      <button onclick="confirmReport('{{ item.id }}', 1)" {% if item.admin_confirmed %}disabled{% endif %}>
+        Confirm
+      </button>
+    </div>
+    {% endfor %}
+  </section>
+
+  <section class="lost-items">
+    <h3>Lost Items</h3>
+    {% for item in lost %}
+    <div class="report-card">
+      <p>ID: {{ item.id }}</p>
+      {% if item.image_path %}
+      <img src="{{ url_for('uploaded_file', filename=item.image_path.split('/')[-1]) }}" alt="Lost item">
+      {% endif %}
+      <p>{{ item.description }}</p>
+      <p>Category: {{ item.category }}</p>
+      <p>Status: {{ 'Confirmed' if item.admin_confirmed else 'Pending' }}</p>
+      <button onclick="confirmReport('{{ item.id }}', 1)" {% if item.admin_confirmed %}disabled{% endif %}>
+        Confirm
+      </button>
+    </div>
+    {% endfor %}#
+  </section>
+</div>
+
+<script>
+function confirmReport(reportId, val) {
+  fetch('/admin/confirm', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({report_id: reportId, val: val})
+  }).then(response => response.json())
+    .then(data => {
+      if(data.ok) location.reload();
+    });
+}
+</script>
+{% endblock %}

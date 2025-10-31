@@ -1,0 +1,11 @@
+flask
+torch
+torchvision
+ultralytics
+sentence-transformers
+faiss-cpu
+opencv-python
+pytesseract
+pillow
+numpy
+werkzeug

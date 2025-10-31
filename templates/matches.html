@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Potential Matches</h2>
+
+{% if suggestions %}
+<div class="matches-list">
+  <h3>Suggestions for Found Item #{{ found_id }}</h3>
+  {% for match in suggestions %}
+  <div class="match-card">
+    <div class="lost-item">
+      <h4>Lost Item #{{ match.lost_id }}</h4>
+      {% if match.image %}
+      <img src="{{ url_for('uploaded_file', filename=match.image.split('/')[-1]) }}" alt="Lost item">
+      {% endif %}
+      <p>{{ match.desc }}</p>
+      <p>Match score: {{ "%.2f"|format(match.score) }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if pairs %}
+<div class="matches-list">
+  <h3>All Potential Matches</h3>
+  {% for pair in pairs %}
+  <div class="match-card">
+    <div class="found-item">
+      <h4>Found Item #{{ pair.found }}</h4>
+      <img src="{{ url_for('uploaded_file', filename=pair.found_img.split('/')[-1]) }}" alt="Found item">
+    </div>
+    <div class="lost-item">
+      <h4>Lost Item #{{ pair.lost }}</h4>
+      <img src="{{ url_for('uploaded_file', filename=pair.lost_img.split('/')[-1]) }}" alt="Lost item">
+      <p>Match score: {{ "%.2f"|format(pair.score) }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if not suggestions and not pairs %}
+<p>No matches found yet.</p>
+{% endif %}
+{% endblock %}

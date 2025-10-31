@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+  <h2>Lost Something on Campus?</h2>
+  <p>Our AI-powered system helps you find lost items quickly and efficiently.</p>
+  
+  <div class="actions">
+    <a href="{{ url_for('submit_lost') }}" class="button">I Lost an Item</a>
+    <a href="{{ url_for('submit_found') }}" class="button secondary">I Found an Item</a>
+  </div>
+</div>
+
+<section id="about" class="about-section">
+  <h3>How It Works</h3>
+  <div class="steps-grid">
+    <div class="step">
+      <h4>1. Report</h4>
+      <p>Upload a photo and description of your lost item or something you found</p>
+    </div>
+    <div class="step">
+      <h4>2. AI Analysis</h4>
+      <p>Our AI analyzes images and descriptions to find potential matches</p>
+    </div>
+    <div class="step">
+      <h4>3. Match</h4>
+      <p>Get notified when we find a match between lost and found items</p>
+    </div>
+    <div class="step">
+      <h4>4. Retrieve</h4>
+      <p>Verify and retrieve your item through our simple process</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
