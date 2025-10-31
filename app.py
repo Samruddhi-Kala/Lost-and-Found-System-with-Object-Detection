@@ -27,12 +27,17 @@ app = Flask(__name__,
           # Static files are in lostfound/static
           static_folder=os.path.join(BASE_DIR, 'static'))
 
+# Add template context processor for current year
+@app.context_processor
+def inject_year():
+    from datetime import datetime
+    return {'year': datetime.utcnow().year}
+
 # Configure Flask app
 app.config.update(
     UPLOAD_FOLDER=UPLOAD_FOLDER,
     MAX_CONTENT_LENGTH=8 * 1024 * 1024,  # 8MB
-    TEMPLATES_AUTO_RELOAD=True,  # Enable template auto-reload
-    ENV='development'
+    TEMPLATES_AUTO_RELOAD=True  # Enable template auto-reload
 )
 
 try:
@@ -235,17 +240,11 @@ def uploaded_file(filename):
 
 if __name__ == '__main__':
     try:
-        logger.info(f"Starting Flask app with templates from:   {app.template_folder}")
+        logger.info(f"Starting Flask app with templates from: {app.template_folder}")
         logger.info(f"Static files from: {app.static_folder}")
-        # Try port 5000 first, fall back to 8000 if busy
-        try:
-            app.run(debug=True, host='0.0.0.0', port=5000)
-        except OSError as e:
-            if "Address already in use" in str(e):
-                logger.info("Port 5000 is busy, trying port 8000...")
-                app.run(debug=True, host='0.0.0.0', port=8000)
-            else:
-                raise
+        # Get port from environment variable or default to 10000
+        port = int(os.environ.get('PORT', 10000))
+        app.run(host='0.0.0.0', port=port)
     except Exception as e:
         logger.error(f"Failed to start Flask app: {str(e)}")
         raise

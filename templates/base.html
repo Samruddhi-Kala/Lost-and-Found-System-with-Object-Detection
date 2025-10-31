@@ -1,28 +1,71 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lost & Found - Campus Lost Item Finder</title>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <meta name="description" content="AI-powered lost and found system for campus items">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Lost & Found - Campus Lost Item Finder{% endblock %}</title>
+    <meta name="description" content="AI-powered lost and found system for campus items">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <header>
-    <h1><a href="{{ url_for('index') }}">Campus Lost & Found</a></h1>
-    <nav>
-      <a href="{{ url_for('index') }}">Home</a>
-      <a href="{{ url_for('submit_lost') }}">Report Lost</a>
-      <a href="{{ url_for('submit_found') }}">Report Found</a>
-      <a href="{{ url_for('view_matches') }}">View Matches</a>
-      <a href="{{ url_for('admin_ui') }}">Admin</a>
-      <a href="{{ url_for('index') }}#about">About</a>
-    </nav>
-  </header>
-  <main>
-    {% block content %}{% endblock %}
-  </main>
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <a href="{{ url_for('index') }}" class="logo-link">
+                    <i class="ri-search-eye-line"></i>
+                    <span>Campus Lost & Found</span>
+                </a>
+            </div>
+            <nav class="main-nav">
+                <button class="mobile-menu-btn" aria-label="Toggle menu">
+                    <i class="ri-menu-line"></i>
+                </button>
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('index') }}" class="nav-link"><i class="ri-home-line"></i> Home</a></li>
+                    <li><a href="{{ url_for('submit_lost') }}" class="nav-link"><i class="ri-error-warning-line"></i> Report Lost</a></li>
+                    <li><a href="{{ url_for('submit_found') }}" class="nav-link"><i class="ri-hand-heart-line"></i> Report Found</a></li>
+                    <li><a href="{{ url_for('view_matches') }}" class="nav-link"><i class="ri-links-line"></i> View Matches</a></li>
+                    <li><a href="{{ url_for('admin_ui') }}" class="nav-link"><i class="ri-settings-line"></i> Admin</a></li>
+                    <li><a href="{{ url_for('index') }}#about" class="nav-link"><i class="ri-information-line"></i> About</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                        <button class="alert-close" aria-label="Close alert"><i class="ri-close-line"></i></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; {{ year }} Campus Lost & Found. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Use</a>
+                <a href="#contact">Contact Us</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>
