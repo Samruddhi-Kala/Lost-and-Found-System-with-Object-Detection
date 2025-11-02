@@ -24,8 +24,18 @@ def init_db():
         category TEXT,
         color TEXT,
         ocr_text TEXT,
+        user_id INTEGER DEFAULT NULL,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
         admin_confirmed INTEGER DEFAULT 0
+    );
+    """)
+    # Create a users table for authentication
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
     """)
     cur.execute("""
@@ -38,20 +48,60 @@ def init_db():
         FOREIGN KEY(report_id) REFERENCES reports(id)
     );
     """)
+    # Ensure reports table has user_id column (for older DBs)
+    cur.execute("PRAGMA table_info(reports)")
+    cols = [r[1] for r in cur.fetchall()]
+    if 'user_id' not in cols:
+        try:
+            cur.execute("ALTER TABLE reports ADD COLUMN user_id INTEGER DEFAULT NULL")
+        except Exception:
+            # if ALTER fails, ignore; new setups already have user_id
+            pass
     conn.commit()
     conn.close()
 
-def save_report(kind, image_path, description='', category=None, color=None, ocr_text=None):
+def save_report(kind, image_path, description='', category=None, color=None, ocr_text=None, user_id=None):
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("""
-        INSERT INTO reports (kind, image_path, description, category, color, ocr_text)
-        VALUES (?,?,?,?,?,?)
-    """, (kind, image_path, description, category, color, ocr_text))
+        INSERT INTO reports (kind, image_path, description, category, color, ocr_text, user_id)
+        VALUES (?,?,?,?,?,?,?)
+    """, (kind, image_path, description, category, color, ocr_text, user_id))
     rid = cur.lastrowid
     conn.commit()
     conn.close()
     return rid
+
+
+def create_user(username, password_hash):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO users (username, password_hash)
+        VALUES (?,?)
+    """, (username, password_hash))
+    uid = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return uid
+
+
+def get_user_by_username(username):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE username=?", (username,))
+    r = cur.fetchone()
+    conn.close()
+    return r
+
+
+def get_user(user_id):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM users WHERE id=?", (user_id,))
+    r = cur.fetchone()
+    conn.close()
+    return r
 
 def save_embedding(report_id, modality, vec: np.ndarray):
     # store float32 bytes + dim in separate column

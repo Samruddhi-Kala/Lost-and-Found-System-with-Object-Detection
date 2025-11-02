@@ -5,16 +5,29 @@
 
 {% if suggestions %}
 <div class="matches-list">
-  <h3>Suggestions for Found Item #{{ found_id }}</h3>
+  {% if found_id %}
+    <h3>Suggestions for Found Item #{{ found_id }}</h3>
+  {% elif lost_id %}
+    <h3>Suggestions for Lost Item #{{ lost_id }}</h3>
+  {% else %}
+    <h3>Suggestions</h3>
+  {% endif %}
+
   {% for match in suggestions %}
   <div class="match-card">
-    <div class="lost-item">
-      <h4>Lost Item #{{ match.lost_id }}</h4>
-      {% if match.image %}
-      <img src="{{ url_for('uploaded_file', filename=match.image.split('/')[-1]) }}" alt="Lost item">
+    <div class="match-thumb">
+      {% set imgpath = (match.image or '')|replace('\\\\','/') %}
+      {% if imgpath %}
+      <img src="{{ url_for('uploaded_file', filename=imgpath.split('/')[-1]) }}" alt="item" style="max-width:160px; max-height:120px;" />
       {% endif %}
+    </div>
+    <div class="match-meta">
+      <h4>Item #{{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else 'N/A') }}</h4>
       <p>{{ match.desc }}</p>
-      <p>Match score: {{ "%.2f"|format(match.score) }}</p>
+      <p><strong>Score:</strong> {{ "%.2f"|format(match.score) }}</p>
+      <div class="match-actions">
+        <button class="confirm-btn" data-report="{{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else '') }}" onclick="confirmReport(this)">Confirm</button>
+      </div>
     </div>
   </div>
   {% endfor %}
@@ -33,7 +46,11 @@
     <div class="lost-item">
       <h4>Lost Item #{{ pair.lost }}</h4>
       <img src="{{ url_for('uploaded_file', filename=pair.lost_img.split('/')[-1]) }}" alt="Lost item">
-      <p>Match score: {{ "%.2f"|format(pair.score) }}</p>
+      <p><strong>Score:</strong> {{ "%.2f"|format(pair.score) }}</p>
+      <div class="match-actions">
+        <button class="confirm-btn" data-report="{{ pair.found }}" onclick="confirmReport(this)">Confirm Found</button>
+        <button class="confirm-btn" data-report="{{ pair.lost }}" onclick="confirmReport(this)">Confirm Lost</button>
+      </div>
     </div>
   </div>
   {% endfor %}
@@ -43,4 +60,25 @@
 {% if not suggestions and not pairs %}
 <p>No matches found yet.</p>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function confirmReport(btn){
+  const reportId = btn.getAttribute('data-report');
+  if(!reportId){ alert('No report id'); return; }
+  btn.disabled = true;
+  btn.textContent = 'Confirming...';
+  try{
+    const res = await fetch('/admin/confirm', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({report_id: parseInt(reportId), val: 1})
+    });
+    const j = await res.json();
+    if(j.ok){ btn.textContent = 'Confirmed'; }
+    else { btn.textContent = 'Failed'; btn.disabled = false; }
+  }catch(err){ console.error(err); btn.textContent='Error'; btn.disabled=false; }
+}
+</script>
 {% endblock %}

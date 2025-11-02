@@ -1,8 +1,9 @@
 # app.py
 import os
 import sys
-from flask import Flask, request, render_template, redirect, url_for, jsonify, send_from_directory
+from flask import Flask, request, render_template, redirect, url_for, jsonify, send_from_directory, session, flash
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import logging
 import numpy as np
 
@@ -27,11 +28,38 @@ app = Flask(__name__,
           # Static files are in lostfound/static
           static_folder=os.path.join(BASE_DIR, 'static'))
 
+# Secret key for session signing. Override by setting SECRET_KEY env var in production.
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24).hex())
+
 # Add template context processor for current year
 @app.context_processor
 def inject_year():
     from datetime import datetime
     return {'year': datetime.utcnow().year}
+
+
+@app.context_processor
+def inject_user():
+    # expose current user info to templates (None if not logged in)
+    try:
+        uid = session.get('user_id')
+        if uid:
+            user = db.get_user(uid)
+            return {'current_user': user}
+    except Exception:
+        pass
+    return {'current_user': None}
+
+
+def login_required(fn):
+    from functools import wraps
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get('user_id'):
+            flash('Please login to access this page', 'warning')
+            return redirect(url_for('login', next=request.path))
+        return fn(*args, **kwargs)
+    return wrapper
 
 # Configure Flask app
 app.config.update(
@@ -67,7 +95,51 @@ except Exception as e:
 def index():
     return render_template('index.html')
 
+
+@app.route('/register', methods=['GET','POST'])
+def register():
+    if request.method=='GET':
+        return render_template('register.html')
+    username = request.form.get('username','').strip()
+    password = request.form.get('password','')
+    if not username or not password:
+        flash('Username and password required','danger')
+        return redirect(url_for('register'))
+    # check existing
+    if db.get_user_by_username(username):
+        flash('Username already taken','warning')
+        return redirect(url_for('register'))
+    pw_hash = generate_password_hash(password)
+    uid = db.create_user(username, pw_hash)
+    session['user_id'] = uid
+    flash('Registered and logged in','success')
+    return redirect(url_for('index'))
+
+
+@app.route('/login', methods=['GET','POST'])
+def login():
+    if request.method=='GET':
+        return render_template('login.html')
+    username = request.form.get('username','').strip()
+    password = request.form.get('password','')
+    user = db.get_user_by_username(username)
+    if not user or not check_password_hash(user['password_hash'], password):
+        flash('Invalid credentials','danger')
+        return redirect(url_for('login'))
+    session['user_id'] = user['id']
+    flash('Logged in','success')
+    next_url = request.args.get('next') or url_for('index')
+    return redirect(next_url)
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    flash('Logged out','info')
+    return redirect(url_for('index'))
+
 @app.route('/lost/submit', methods=['GET', 'POST'])
+@login_required
 def submit_lost():
     if request.method == 'GET':
         return render_template('submit_lost.html')
@@ -86,7 +158,8 @@ def submit_lost():
         img_cv = cv2.imread(path)
         ocr_text = pipe.ocr_extract(img_cv)
         color = pipe.dominant_color(img_cv)
-        report_id = db.save_report('lost', path, desc, category, color, ocr_text)
+        user_id = session.get('user_id')
+        report_id = db.save_report('lost', path, desc, category, color, ocr_text, user_id=user_id)
         # save text embedding for description if present
         if desc.strip():
             t_emb = pipe.get_text_embedding(desc)
@@ -95,22 +168,51 @@ def submit_lost():
         # detect objects and extract embeddings per object
         dets = pipe.detect_objects(path)
         pil = Image.open(path).convert('RGB')
+        # collect embeddings for the newly submitted lost item so we can query existing found items
+        all_query_embeddings = []
         for (x1,y1,x2,y2) in dets:
             crop = pil.crop((x1,y1,x2,y2))
             emb = pipe.extract_image_embedding(crop)
             db.save_embedding(report_id, 'image', emb)
-            # For lost items, we might want to add image embeddings to faiss as well so they can be matched to found items.
+            # add lost item embeddings to FAISS index so it's searchable in future
             pipe.add_to_faiss(emb, report_id)
+            all_query_embeddings.append(emb)
     else:
         # text-only lost report
-        report_id = db.save_report('lost', None, desc, category, None, None)
+        user_id = session.get('user_id')
+        report_id = db.save_report('lost', None, desc, category, None, None, user_id=user_id)
         if desc.strip():
             t_emb = pipe.get_text_embedding(desc)
             db.save_embedding(report_id, 'text', t_emb)
+    # persist FAISS index after adding new embeddings
     pipe.save_faiss()
+
+    # If we had image embeddings for this lost report, attempt to find matching 'found' reports
+    try:
+        if 'all_query_embeddings' in locals() and all_query_embeddings:
+            query_matrix = np.stack(all_query_embeddings)
+            results = pipe.search_faiss_multi_query(query_matrix, topk=5)
+
+            matches = {}
+            for rid, dist in results:
+                rep = db.get_report(rid)
+                # only consider found reports as candidates for lost items
+                if rep and rep['kind'] == 'found':
+                    current_best_score = matches.get(rep['id'], {}).get('score', float('inf'))
+                    if float(dist) < current_best_score:
+                        matches[rep['id']] = {'found_id': rep['id'], 'image': rep['image_path'], 'desc': rep['description'], 'score': float(dist)}
+
+            # sort by score (lower distance is better)
+            final_matches = sorted(list(matches.values()), key=lambda x: x.get('score', float('inf')))
+            # Render matches page for this lost report (suggested found items)
+            return render_template('matches.html', lost_id=report_id, suggestions=final_matches)
+    except Exception as e:
+        logger.error(f"Error while searching for matches for lost report {report_id}: {e}")
+
     return redirect(url_for('index'))
 
 @app.route('/found/submit', methods=['GET','POST'])
+@login_required
 def submit_found():
     if request.method == 'GET':
         return render_template('submit_found.html')
@@ -125,7 +227,8 @@ def submit_found():
     img_cv = cv2.imread(path)
     ocr_text = pipe.ocr_extract(img_cv)
     color = pipe.dominant_color(img_cv)
-    report_id = db.save_report('found', path, desc, category, color, ocr_text)
+    user_id = session.get('user_id')
+    report_id = db.save_report('found', path, desc, category, color, ocr_text, user_id=user_id)
     # text embeddings for user description and OCR
     if desc.strip():
         t_emb = pipe.get_text_embedding(desc)
@@ -169,7 +272,7 @@ def submit_found():
                     matches[rep['id']] = {'lost_id': rep['id'], 'image': rep['image_path'], 'desc': rep['description'], 'score': float(dist)}
 
     # Convert the dictionary values back to a list
-    final_matches = list(matches.values())
+    final_matches = sorted(list(matches.values()), key=lambda x: x.get('score', float('inf')))
     
     # redirect to matches page showing suggestions for this found report
     return render_template('matches.html', found_id=report_id, suggestions=final_matches)

@@ -33,6 +33,12 @@
                     <li><a href="{{ url_for('view_matches') }}" class="nav-link"><i class="ri-links-line"></i> View Matches</a></li>
                     <li><a href="{{ url_for('admin_ui') }}" class="nav-link"><i class="ri-settings-line"></i> Admin</a></li>
                     <li><a href="{{ url_for('index') }}#about" class="nav-link"><i class="ri-information-line"></i> About</a></li>
+                    {% if current_user %}
+                    <li class="nav-link">Hello, {{ current_user['username'] }} <a href="{{ url_for('logout') }}">(Logout)</a></li>
+                    {% else %}
+                    <li><a href="{{ url_for('login') }}" class="nav-link"><i class="ri-login-box-line"></i> Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="nav-link"><i class="ri-user-add-line"></i> Register</a></li>
+                    {% endif %}
                 </ul>
             </nav>
         </div>
