@@ -219,18 +219,22 @@ function viewDetails(itemId) {
 function showNotification(message, type = 'info') {
   const notification = document.createElement('div');
   notification.className = `alert alert-${type} fade-in`;
-  notification.innerHTML = `
-    ${message}
-    <button class="alert-close" onclick="this.parentElement.remove()">
-      <i class="ri-close-line"></i>
-    </button>
-  `;
   
-  const container = document.querySelector('.main-content');
-  if (!container) {
-    console.error('Main content container not found');
-    return;
-  }
+  // Create elements safely
+  const messageText = document.createTextNode(message);
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'alert-close';
+  closeBtn.onclick = () => notification.remove();
+  closeBtn.innerHTML = '<i class="ri-close-line"></i>';
+  
+  notification.appendChild(messageText);
+  notification.appendChild(closeBtn);
+  
+  // Try multiple possible container selectors
+  const container = document.querySelector('.main-content') || 
+                     document.querySelector('.matches-container') || 
+                     document.querySelector('main') || 
+                     document.body;
   
   container.insertBefore(notification, container.firstChild);
   

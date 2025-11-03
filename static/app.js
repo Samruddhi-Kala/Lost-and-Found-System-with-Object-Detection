@@ -199,18 +199,34 @@ function initializeFileUploadPreview(inputId, previewId, labelSelector) {
         if (file && file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = (e) => {
-                preview.innerHTML = `
-                    <div class="preview-image-container">
-                        <img src="${e.target.result}" alt="Preview">
-                        <button type="button" class="remove-image" onclick="removeFilePreview('${inputId}', '${previewId}', '${labelSelector}')">
-                            <i class="ri-close-circle-line"></i>
-                        </button>
-                        <div class="file-info">
-                            <i class="ri-file-image-line"></i>
-                            <span>${file.name}</span>
-                        </div>
-                    </div>
-                `;
+                // Create elements safely to prevent XSS
+                const container = document.createElement('div');
+                container.className = 'preview-image-container';
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Preview';
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-image';
+                removeBtn.onclick = () => removeFilePreview(inputId, previewId, labelSelector);
+                removeBtn.innerHTML = '<i class="ri-close-circle-line"></i>';
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'file-info';
+                fileInfo.innerHTML = '<i class="ri-file-image-line"></i>';
+                const fileNameSpan = document.createElement('span');
+                fileNameSpan.textContent = file.name; // Use textContent to prevent XSS
+                fileInfo.appendChild(fileNameSpan);
+                
+                container.appendChild(img);
+                container.appendChild(removeBtn);
+                container.appendChild(fileInfo);
+                
+                preview.innerHTML = '';
+                preview.appendChild(container);
+                
                 if (uploadLabel) uploadLabel.style.display = 'none';
                 preview.style.display = 'block';
             };
