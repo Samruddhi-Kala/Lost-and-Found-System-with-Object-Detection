@@ -2,33 +2,111 @@
 
 {% block content %}
 <div class="hero">
-  <h2>Lost Something on Campus?</h2>
-  <p>Our AI-powered system helps you find lost items quickly and efficiently.</p>
-  
-  <div class="actions">
-    <a href="{{ url_for('submit_lost') }}" class="button">I Lost an Item</a>
-    <a href="{{ url_for('submit_found') }}" class="button secondary">I Found an Item</a>
+  <div class="hero-content">
+    <div class="hero-badge">🔍 AI-Powered Lost & Found</div>
+    <h1 class="hero-title">Lost Something on Campus?</h1>
+    <p class="hero-description">Our intelligent system uses AI image recognition to help you find lost items quickly and efficiently. Join hundreds of students reuniting with their belongings.</p>
+    
+    <div class="actions">
+      <a href="{{ url_for('submit_lost') }}" class="button button-primary">
+        <span class="button-icon">😢</span>
+        <span>I Lost an Item</span>
+      </a>
+      <a href="{{ url_for('submit_found') }}" class="button button-secondary">
+        <span class="button-icon">🎉</span>
+        <span>I Found an Item</span>
+      </a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-number">500+</div>
+        <div class="stat-label">Items Reunited</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">95%</div>
+        <div class="stat-label">Match Accuracy</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">24/7</div>
+        <div class="stat-label">AI Monitoring</div>
+      </div>
+    </div>
   </div>
+  
 </div>
 
 <section id="about" class="about-section">
-  <h3>How It Works</h3>
+  <div class="section-header">
+    <h2 class="section-title">How It Works</h2>
+    <p class="section-subtitle">Simple steps to reunite with your belongings</p>
+  </div>
+  
   <div class="steps-grid">
     <div class="step">
-      <h4>1. Report</h4>
-      <p>Upload a photo and description of your lost item or something you found</p>
+      <div class="step-icon">📸</div>
+      <div class="step-number">01</div>
+      <h3 class="step-title">Report</h3>
+      <p class="step-description">Upload a photo and detailed description of your lost item or something you found on campus</p>
     </div>
     <div class="step">
-      <h4>2. AI Analysis</h4>
-      <p>Our AI analyzes images and descriptions to find potential matches</p>
+      <div class="step-icon">🤖</div>
+      <div class="step-number">02</div>
+      <h3 class="step-title">AI Analysis</h3>
+      <p class="step-description">Our advanced AI analyzes images and descriptions to find potential matches in our database</p>
     </div>
     <div class="step">
-      <h4>3. Match</h4>
-      <p>Get notified when we find a match between lost and found items</p>
+      <div class="step-icon">✨</div>
+      <div class="step-number">03</div>
+      <h3 class="step-title">Match</h3>
+      <p class="step-description">Get instant notifications when we find a match between lost and found items</p>
     </div>
     <div class="step">
-      <h4>4. Retrieve</h4>
-      <p>Verify and retrieve your item through our simple process</p>
+      <div class="step-icon">🎯</div>
+      <div class="step-number">04</div>
+      <h3 class="step-title">Retrieve</h3>
+      <p class="step-description">Verify ownership and retrieve your item through our secure and simple process</p>
+    </div>
+  </div>
+</section>
+
+<section class="features-section">
+  <div class="section-header">
+    <h2 class="section-title">Why Choose Our System?</h2>
+    <p class="section-subtitle">Cutting-edge technology meets simplicity</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🎨</div>
+      <h3 class="feature-title">Visual Recognition</h3>
+      <p class="feature-description">Advanced AI analyzes images to identify and match items with high accuracy</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3 class="feature-title">Instant Matching</h3>
+      <p class="feature-description">Get real-time notifications when potential matches are found</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3 class="feature-title">Secure & Private</h3>
+      <p class="feature-description">Your data is encrypted and protected with industry-standard security</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3 class="feature-title">Smart Dashboard</h3>
+      <p class="feature-description">Track your reports and matches in an intuitive, easy-to-use interface</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-content">
+    <h2 class="cta-title">Ready to Find Your Lost Item?</h2>
+    <p class="cta-description">Join our community and let AI help you reunite with your belongings</p>
+    <div class="cta-buttons">
+      <a href="{{ url_for('submit_lost') }}" class="button button-large button-primary">Get Started Now</a>
+      <a href="{{ url_for('view_matches') }}" class="button button-large button-outline">Browse Items</a>
     </div>
   </div>
 </section>

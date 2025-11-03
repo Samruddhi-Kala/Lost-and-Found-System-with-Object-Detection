@@ -1,56 +1,147 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Admin Dashboard</h2>
+<div class="page-header">
+  <div class="page-header-content">
+    <div class="page-icon">👨‍💼</div>
+    <h1 class="page-title">Admin Dashboard</h1>
+    <p class="page-description">Manage and confirm lost & found reports</p>
+  </div>
+</div>
 
-<div class="admin-reports">
-  <section class="found-items">
-    <h3>Found Items</h3>
-    {% for item in found %}
-    <div class="report-card">
-      <p>ID: {{ item.id }}</p>
-      {% if item.image_path %}
-      <img src="{{ url_for('uploaded_file', filename=item.image_path.split('/')[-1]) }}" alt="Found item">
-      {% endif %}
-      <p>{{ item.description }}</p>
-      <p>Category: {{ item.category }}</p>
-      <p>Status: {{ 'Confirmed' if item.admin_confirmed else 'Pending' }}</p>
-      <button onclick="confirmReport('{{ item.id }}', 1)" {% if item.admin_confirmed %}disabled{% endif %}>
-        Confirm
-      </button>
+<div class="admin-container">
+  <div class="admin-stats">
+    <div class="stat-card">
+      <div class="stat-icon">🎉</div>
+      <div class="stat-info">
+        <h3>{{ found|length }}</h3>
+        <p>Found Items</p>
+      </div>
     </div>
-    {% endfor %}
-  </section>
+    <div class="stat-card">
+      <div class="stat-icon">😢</div>
+      <div class="stat-info">
+        <h3>{{ lost|length }}</h3>
+        <p>Lost Items</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <h3>{{ (found + lost)|selectattr('admin_confirmed')|list|length }}</h3>
+        <p>Confirmed</p>
+      </div>
+    </div>
+  </div>
 
-  <section class="lost-items">
-    <h3>Lost Items</h3>
-    {% for item in lost %}
-    <div class="report-card">
-      <p>ID: {{ item.id }}</p>
-      {% if item.image_path %}
-      <img src="{{ url_for('uploaded_file', filename=item.image_path.split('/')[-1]) }}" alt="Lost item">
-      {% endif %}
-      <p>{{ item.description }}</p>
-      <p>Category: {{ item.category }}</p>
-      <p>Status: {{ 'Confirmed' if item.admin_confirmed else 'Pending' }}</p>
-      <button onclick="confirmReport('{{ item.id }}', 1)" {% if item.admin_confirmed %}disabled{% endif %}>
-        Confirm
-      </button>
-    </div>
-    {% endfor %}#
-  </section>
+  <div class="admin-sections">
+    <section class="admin-section">
+      <div class="section-header-admin">
+        <h2>🎉 Found Items</h2>
+        <span class="section-badge">{{ found|length }} items</span>
+      </div>
+      
+      <div class="admin-grid">
+        {% for item in found %}
+        <div class="admin-card {% if item.admin_confirmed %}confirmed{% endif %}">
+          <div class="admin-card-image">
+            {% if item.image_path %}
+              <img src="{{ url_for('uploaded_file', filename=item.image_path.split('/')[-1]) }}" alt="Found item">
+            {% else %}
+              <div class="no-image-admin">📷</div>
+            {% endif %}
+            {% if item.admin_confirmed %}
+              <span class="confirmed-badge">✓ Confirmed</span>
+            {% endif %}
+          </div>
+          <div class="admin-card-content">
+            <div class="admin-card-header">
+              <h3>Item #{{ item.id }}</h3>
+              <span class="category-badge">{{ item.category }}</span>
+            </div>
+            <p class="admin-description">{{ item.description }}</p>
+            <div class="admin-card-footer">
+              <button 
+                class="button button-primary button-small" 
+                onclick="confirmReport('{{ item.id }}', 1)" 
+                {% if item.admin_confirmed %}disabled{% endif %}>
+                {% if item.admin_confirmed %}✓ Confirmed{% else %}Confirm{% endif %}
+              </button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <div class="section-header-admin">
+        <h2>😢 Lost Items</h2>
+        <span class="section-badge">{{ lost|length }} items</span>
+      </div>
+      
+      <div class="admin-grid">
+        {% for item in lost %}
+        <div class="admin-card {% if item.admin_confirmed %}confirmed{% endif %}">
+          <div class="admin-card-image">
+            {% if item.image_path %}
+              <img src="{{ url_for('uploaded_file', filename=item.image_path.split('/')[-1]) }}" alt="Lost item">
+            {% else %}
+              <div class="no-image-admin">📷</div>
+            {% endif %}
+            {% if item.admin_confirmed %}
+              <span class="confirmed-badge">✓ Confirmed</span>
+            {% endif %}
+          </div>
+          <div class="admin-card-content">
+            <div class="admin-card-header">
+              <h3>Item #{{ item.id }}</h3>
+              <span class="category-badge">{{ item.category }}</span>
+            </div>
+            <p class="admin-description">{{ item.description }}</p>
+            <div class="admin-card-footer">
+              <button 
+                class="button button-primary button-small" 
+                onclick="confirmReport('{{ item.id }}', 1)" 
+                {% if item.admin_confirmed %}disabled{% endif %}>
+                {% if item.admin_confirmed %}✓ Confirmed{% else %}Confirm{% endif %}
+              </button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
 </div>
 
 <script>
 function confirmReport(reportId, val) {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Confirming...';
+  
   fetch('/admin/confirm', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({report_id: reportId, val: val})
-  }).then(response => response.json())
-    .then(data => {
-      if(data.ok) location.reload();
-    });
+  })
+  .then(response => response.json())
+  .then(data => {
+    if(data.ok) {
+      btn.innerHTML = '✓ Confirmed';
+      btn.classList.add('confirmed');
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      btn.innerHTML = 'Error';
+      btn.disabled = false;
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    btn.innerHTML = 'Error';
+    btn.disabled = false;
+  });
 }
 </script>
 {% endblock %}

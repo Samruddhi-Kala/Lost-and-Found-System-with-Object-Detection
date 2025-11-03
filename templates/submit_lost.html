@@ -1,29 +1,80 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Report Lost Item</h2>
-<form method="POST" enctype="multipart/form-data">
-  <div class="form-group">
-    <label>Description:</label>
-    <textarea name="description" required></textarea>
+<div class="page-header">
+  <div class="page-header-content">
+    <div class="page-icon">😢</div>
+    <h1 class="page-title">Report Lost Item</h1>
+    <p class="page-description">Help us find your lost item by providing detailed information</p>
   </div>
-  
-  <div class="form-group">
-    <label>Category:</label>
-    <select name="category">
-      <option value="electronics">Electronics</option>
-      <option value="clothing">Clothing</option>
-      <option value="accessories">Accessories</option>
-      <option value="documents">Documents</option>
-      <option value="other">Other</option>
-    </select>
-  </div>
+</div>
 
-  <div class="form-group">
-    <label>Image (optional):</label>
-    <input type="file" name="image" accept="image/*">
-  </div>
+<div class="form-container">
+  <form method="POST" enctype="multipart/form-data" class="modern-form">
+    <div class="form-grid-vertical">
+      <div class="form-group">
+        <label class="form-label">
+          <span class="label-icon">📝</span>
+          Description
+        </label>
+        <textarea name="description" class="form-input form-textarea" required placeholder="Describe your lost item in detail (color, brand, unique features...)"></textarea>
+        <small class="form-help">Be as specific as possible to help us match your item</small>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">
+          <span class="label-icon">🏷️</span>
+          Category
+        </label>
+        <select name="category" class="form-input form-select">
+          <option value="electronics"> Electronics</option>
+          <option value="accessories"> Accessories</option>
+          <option value="documents"> Documents</option>
+          <option value="other"> Other</option>
+        </select>
+      </div>
 
-  <button type="submit">Submit</button>
-</form>
+      <div class="form-group">
+        <label class="form-label">
+          <span class="label-icon">📸</span>
+          Image (Optional)
+        </label>
+        <div class="file-upload-wrapper">
+          <input type="file" name="image" accept="image/*" class="file-input" id="fileInput">
+          <label for="fileInput" class="file-upload-label">
+            <span class="upload-icon">☁️</span>
+            <span class="upload-text">Click to upload or drag and drop</span>
+            <span class="upload-subtext">PNG, JPG up to 8MB</span>
+          </label>
+          <div class="file-preview" id="filePreview"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="button button-primary button-large">
+        <span>Submit Report</span>
+        <span class="button-icon">→</span>
+      </button>
+      <a href="{{ url_for('index') }}" class="button button-outline button-large">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const filePreview = document.getElementById('filePreview');
+
+fileInput.addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      filePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+      filePreview.style.display = 'block';
+    }
+    reader.readAsDataURL(file);
+  }
+});
+</script>
 {% endblock %}

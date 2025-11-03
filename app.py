@@ -28,6 +28,9 @@ app = Flask(__name__,
           # Static files are in lostfound/static
           static_folder=os.path.join(BASE_DIR, 'static'))
 
+# Enable debug mode for development (disable in production!)
+app.debug = True
+
 # Secret key for session signing. Override by setting SECRET_KEY env var in production.
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24).hex())
 
@@ -345,6 +348,16 @@ def admin_confirm():
 def uploaded_file(filename):
     # This assumes the browser asks for the filename only (e.g., 'image.jpg')
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# Add a global error handler to show exceptions in the browser (for debugging)
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    # Only show detailed errors in debug mode
+    if app.debug:
+        return f"<h1>Internal Server Error</h1><pre>{traceback.format_exc()}</pre>", 500
+    else:
+        return "Internal Server Error", 500
 
 if __name__ == '__main__':
     try:

@@ -1,74 +1,121 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Potential Matches</h2>
+<div class="page-header">
+  <div class="page-header-content">
+    <div class="page-icon">✨</div>
+    <h1 class="page-title">Potential Matches</h1>
+    <p class="page-description">AI-powered matches between lost and found items</p>
+  </div>
+</div>
 
-{% if suggestions %}
-<div class="matches-list">
-  {% if found_id %}
-    <h3>Suggestions for Found Item #{{ found_id }}</h3>
-  {% elif lost_id %}
-    <h3>Suggestions for Lost Item #{{ lost_id }}</h3>
-  {% else %}
-    <h3>Suggestions</h3>
+<div class="matches-container">
+  {% if suggestions %}
+    <div class="matches-section">
+      <div class="section-header-small">
+        {% if found_id %}
+          <h2>💡 Suggestions for Found Item #{{ found_id }}</h2>
+        {% elif lost_id %}
+          <h2>💡 Suggestions for Lost Item #{{ lost_id }}</h2>
+        {% else %}
+          <h2>💡 Suggested Matches</h2>
+        {% endif %}
+      </div>
+
+      <div class="matches-grid">
+        {% for match in suggestions %}
+        <div class="match-card-modern">
+          <div class="match-image">
+            {% set imgpath = (match.image or '')|replace('\\','/') %}
+            {% if imgpath %}
+              <img src="{{ url_for('uploaded_file', filename=imgpath.split('/')[-1]) }}" alt="Item image" />
+            {% else %}
+              <div class="no-image">📷</div>
+            {% endif %}
+            <div class="match-score-badge">
+              {{ "%.0f"|format((1 - match.score) * 100) }}% Match
+            </div>
+          </div>
+          <div class="match-content">
+            <h3 class="match-title">
+              Item #{{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else 'N/A') }}
+            </h3>
+            <p class="match-description">{{ match.desc }}</p>
+            <div class="match-meta-info">
+              <span class="meta-badge">🎯 Score: {{ "%.2f"|format(match.score) }}</span>
+            </div>
+            <div class="match-actions">
+              <button class="button button-primary" data-report="{{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else '') }}" onclick="confirmReport(this)">
+                ✓ Confirm Match
+              </button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
   {% endif %}
 
-  {% for match in suggestions %}
-  <div class="match-card">
-    <div class="match-thumb">
-      {% set imgpath = (match.image or '')|replace('\\\\','/') %}
-      {% if imgpath %}
-      <img src="{{ url_for('uploaded_file', filename=imgpath.split('/')[-1]) }}" alt="item" style="max-width:160px; max-height:120px;" />
-      {% endif %}
-    </div>
-    <div class="match-meta">
-      <h4>Item #{{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else 'N/A') }}</h4>
-      <p>{{ match.desc }}</p>
-      <p><strong>Score:</strong> {{ "%.2f"|format(match.score) }}</p>
-      <div class="match-actions">
-        <button class="confirm-btn" data-report="{{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else '') }}" onclick="confirmReport(this)">Confirm</button>
+  {% if pairs %}
+    <div class="matches-section">
+      <div class="section-header-small">
+        <h2>🔄 All Potential Matches</h2>
+      </div>
+
+      <div class="pairs-grid">
+        {% for pair in pairs %}
+        <div class="pair-card">
+          <div class="pair-item found-side">
+            <span class="pair-label">Found</span>
+            <div class="pair-image">
+              <img src="{{ url_for('uploaded_file', filename=pair.found_img.split('/')[-1]) }}" alt="Found item">
+            </div>
+            <h4>Item #{{ pair.found }}</h4>
+            <button class="button button-secondary" data-report="{{ pair.found }}" onclick="confirmReport(this)">
+              ✓ Confirm
+            </button>
+          </div>
+          
+          <div class="pair-connector">
+            <div class="connector-line"></div>
+            <div class="connector-badge">
+              {{ "%.0f"|format((1 - pair.score) * 100) }}%
+            </div>
+          </div>
+          
+          <div class="pair-item lost-side">
+            <span class="pair-label">Lost</span>
+            <div class="pair-image">
+              <img src="{{ url_for('uploaded_file', filename=pair.lost_img.split('/')[-1]) }}" alt="Lost item">
+            </div>
+            <h4>Item #{{ pair.lost }}</h4>
+            <button class="button button-secondary" data-report="{{ pair.lost }}" onclick="confirmReport(this)">
+              ✓ Confirm
+            </button>
+          </div>
+        </div>
+        {% endfor %}
       </div>
     </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
+  {% endif %}
 
-{% if pairs %}
-<div class="matches-list">
-  <h3>All Potential Matches</h3>
-  {% for pair in pairs %}
-  <div class="match-card">
-    <div class="found-item">
-      <h4>Found Item #{{ pair.found }}</h4>
-      <img src="{{ url_for('uploaded_file', filename=pair.found_img.split('/')[-1]) }}" alt="Found item">
+  {% if not suggestions and not pairs %}
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <h3>No Matches Found Yet</h3>
+      <p>Check back later as more items are reported</p>
+      <a href="{{ url_for('index') }}" class="button button-primary">Go Back Home</a>
     </div>
-    <div class="lost-item">
-      <h4>Lost Item #{{ pair.lost }}</h4>
-      <img src="{{ url_for('uploaded_file', filename=pair.lost_img.split('/')[-1]) }}" alt="Lost item">
-      <p><strong>Score:</strong> {{ "%.2f"|format(pair.score) }}</p>
-      <div class="match-actions">
-        <button class="confirm-btn" data-report="{{ pair.found }}" onclick="confirmReport(this)">Confirm Found</button>
-        <button class="confirm-btn" data-report="{{ pair.lost }}" onclick="confirmReport(this)">Confirm Lost</button>
-      </div>
-    </div>
-  </div>
-  {% endfor %}
+  {% endif %}
 </div>
-{% endif %}
 
-{% if not suggestions and not pairs %}
-<p>No matches found yet.</p>
-{% endif %}
-{% endblock %}
-
-{% block scripts %}
 <script>
 async function confirmReport(btn){
   const reportId = btn.getAttribute('data-report');
   if(!reportId){ alert('No report id'); return; }
   btn.disabled = true;
-  btn.textContent = 'Confirming...';
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '⏳ Confirming...';
   try{
     const res = await fetch('/admin/confirm', {
       method: 'POST',
@@ -76,9 +123,18 @@ async function confirmReport(btn){
       body: JSON.stringify({report_id: parseInt(reportId), val: 1})
     });
     const j = await res.json();
-    if(j.ok){ btn.textContent = 'Confirmed'; }
-    else { btn.textContent = 'Failed'; btn.disabled = false; }
-  }catch(err){ console.error(err); btn.textContent='Error'; btn.disabled=false; }
+    if(j.ok){ 
+      btn.innerHTML = '✓ Confirmed';
+      btn.classList.add('confirmed');
+    } else { 
+      btn.innerHTML = '✗ Failed'; 
+      btn.disabled = false; 
+    }
+  }catch(err){ 
+    console.error(err); 
+    btn.innerHTML = originalText; 
+    btn.disabled = false; 
+  }
 }
 </script>
 {% endblock %}
