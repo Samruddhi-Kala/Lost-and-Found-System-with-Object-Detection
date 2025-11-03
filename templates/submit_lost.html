@@ -95,48 +95,9 @@
 
 {% block extra_scripts %}
 <script>
-// Enhanced file upload preview
+// Initialize file upload preview using shared function
 document.addEventListener('DOMContentLoaded', () => {
-  const fileInput = document.getElementById('image-upload');
-  const preview = document.getElementById('image-preview');
-  const uploadLabel = document.querySelector('.file-upload-label');
-  
-  if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          preview.innerHTML = `
-            <div class="preview-image-container">
-              <img src="${e.target.result}" alt="Preview">
-              <button type="button" class="remove-image" onclick="removeImage()">
-                <i class="ri-close-circle-line"></i>
-              </button>
-              <div class="file-info">
-                <i class="ri-file-image-line"></i>
-                <span>${file.name}</span>
-              </div>
-            </div>
-          `;
-          uploadLabel.style.display = 'none';
-          preview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }
+  initializeFileUploadPreview('image-upload', 'image-preview', '.file-upload-label');
 });
-
-function removeImage() {
-  const fileInput = document.getElementById('image-upload');
-  const preview = document.getElementById('image-preview');
-  const uploadLabel = document.querySelector('.file-upload-label');
-  
-  fileInput.value = '';
-  preview.innerHTML = '';
-  preview.style.display = 'none';
-  uploadLabel.style.display = 'flex';
-}
 </script>
 {% endblock %}

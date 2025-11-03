@@ -37,7 +37,7 @@
             <img src="{{ url_for('uploaded_file', filename=imgpath.split('/')[-1]) }}" alt="Item image" />
             <div class="match-score-badge">
               <i class="ri-percent-line"></i>
-              {{ "%.0f"|format(100 - match.score * 10) }}% Match
+              {{ "%.0f"|format([0, 100 - match.score * 10]|max|min(100)) }}% Match
             </div>
           {% else %}
             <div class="no-image">
@@ -98,7 +98,7 @@
           <i class="ri-arrow-left-right-line"></i>
           <span>Potential Match</span>
           <div class="match-score-badge">
-            {{ "%.0f"|format(100 - pair.score * 10) }}% Match
+            {{ "%.0f"|format([0, 100 - pair.score * 10]|max|min(100)) }}% Match
           </div>
         </div>
         
@@ -211,8 +211,9 @@ async function confirmReport(btn) {
 }
 
 function viewDetails(itemId) {
-  // Placeholder for viewing item details
-  showNotification(`Viewing details for item #${itemId}`, 'info');
+  // Navigate to item details or show modal with item information
+  // For now, show a notification that this feature is coming soon
+  showNotification(`Item details view coming soon!`, 'info');
 }
 
 function showNotification(message, type = 'info') {
@@ -226,6 +227,11 @@ function showNotification(message, type = 'info') {
   `;
   
   const container = document.querySelector('.main-content');
+  if (!container) {
+    console.error('Main content container not found');
+    return;
+  }
+  
   container.insertBefore(notification, container.firstChild);
   
   setTimeout(() => {

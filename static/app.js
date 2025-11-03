@@ -185,3 +185,49 @@ function showNotification(message, type = 'info') {
         setTimeout(() => notification.remove(), 300);
     }, 5000);
 }
+
+// Shared file upload preview functionality
+function initializeFileUploadPreview(inputId, previewId, labelSelector) {
+    const fileInput = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const uploadLabel = document.querySelector(labelSelector);
+    
+    if (!fileInput || !preview) return;
+    
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.innerHTML = `
+                    <div class="preview-image-container">
+                        <img src="${e.target.result}" alt="Preview">
+                        <button type="button" class="remove-image" onclick="removeFilePreview('${inputId}', '${previewId}', '${labelSelector}')">
+                            <i class="ri-close-circle-line"></i>
+                        </button>
+                        <div class="file-info">
+                            <i class="ri-file-image-line"></i>
+                            <span>${file.name}</span>
+                        </div>
+                    </div>
+                `;
+                if (uploadLabel) uploadLabel.style.display = 'none';
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+function removeFilePreview(inputId, previewId, labelSelector) {
+    const fileInput = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const uploadLabel = document.querySelector(labelSelector);
+    
+    if (fileInput) fileInput.value = '';
+    if (preview) {
+        preview.innerHTML = '';
+        preview.style.display = 'none';
+    }
+    if (uploadLabel) uploadLabel.style.display = 'flex';
+}
