@@ -1,84 +1,258 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Potential Matches</h2>
+<div class="matches-container">
+  <div class="matches-header">
+    <div class="header-icon">
+      <i class="ri-links-line"></i>
+    </div>
+    <h1>Potential Matches</h1>
+    <p>AI-powered matching results based on visual similarity and descriptions</p>
+  </div>
 
-{% if suggestions %}
-<div class="matches-list">
-  {% if found_id %}
-    <h3>Suggestions for Found Item #{{ found_id }}</h3>
-  {% elif lost_id %}
-    <h3>Suggestions for Lost Item #{{ lost_id }}</h3>
-  {% else %}
-    <h3>Suggestions</h3>
-  {% endif %}
-
-  {% for match in suggestions %}
-  <div class="match-card">
-    <div class="match-thumb">
-      {% set imgpath = (match.image or '')|replace('\\\\','/') %}
-      {% if imgpath %}
-      <img src="{{ url_for('uploaded_file', filename=imgpath.split('/')[-1]) }}" alt="item" style="max-width:160px; max-height:120px;" />
+  {% if suggestions %}
+  <div class="suggestions-section">
+    <div class="section-title">
+      {% if found_id %}
+        <i class="ri-hand-heart-line"></i>
+        <h2>Matches for Found Item #{{ found_id }}</h2>
+        <span class="badge badge-success">{{ suggestions|length }} Potential Match{{ 'es' if suggestions|length != 1 else '' }}</span>
+      {% elif lost_id %}
+        <i class="ri-error-warning-line"></i>
+        <h2>Matches for Lost Item #{{ lost_id }}</h2>
+        <span class="badge badge-primary">{{ suggestions|length }} Potential Match{{ 'es' if suggestions|length != 1 else '' }}</span>
+      {% else %}
+        <i class="ri-search-line"></i>
+        <h2>Search Results</h2>
+        <span class="badge badge-info">{{ suggestions|length }} Match{{ 'es' if suggestions|length != 1 else '' }}</span>
       {% endif %}
     </div>
-    <div class="match-meta">
-      <h4>Item #{{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else 'N/A') }}</h4>
-      <p>{{ match.desc }}</p>
-      <p><strong>Score:</strong> {{ "%.2f"|format(match.score) }}</p>
-      <div class="match-actions">
-        <button class="confirm-btn" data-report="{{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else '') }}" onclick="confirmReport(this)">Confirm</button>
+
+    <div class="matches-grid">
+      {% for match in suggestions %}
+      <div class="enhanced-match-card">
+        <div class="match-image">
+          {% set imgpath = (match.image or '')|replace('\\\\','/') %}
+          {% if imgpath %}
+            <img src="{{ url_for('uploaded_file', filename=imgpath.split('/')[-1]) }}" alt="Item image" />
+            <div class="match-score-badge">
+              <i class="ri-percent-line"></i>
+              {{ "%.0f"|format([0, 100 - match.score * 10]|max|min(100)) }}% Match
+            </div>
+          {% else %}
+            <div class="no-image">
+              <i class="ri-image-line"></i>
+              <span>No image available</span>
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="match-content">
+          <div class="match-header">
+            <h3>Item #{{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else 'N/A') }}</h3>
+            {% if match.lost_id is defined %}
+              <span class="item-type-badge lost">Lost Item</span>
+            {% elif match.found_id is defined %}
+              <span class="item-type-badge found">Found Item</span>
+            {% endif %}
+          </div>
+          
+          <p class="match-description">{{ match.desc if match.desc else 'No description provided' }}</p>
+          
+          <div class="match-metrics">
+            <div class="metric">
+              <i class="ri-ruler-line"></i>
+              <span>Distance: {{ "%.2f"|format(match.score) }}</span>
+            </div>
+          </div>
+          
+          <div class="match-actions">
+            <button class="button button-primary confirm-btn" data-report="{{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else '') }}" onclick="confirmReport(this)">
+              <i class="ri-checkbox-circle-line"></i>
+              Confirm Match
+            </button>
+            <button class="button button-outline" onclick="viewDetails({{ match.lost_id if match.lost_id is defined else (match.found_id if match.found_id is defined else 0) }})">
+              <i class="ri-eye-line"></i>
+              View Details
+            </button>
+          </div>
+        </div>
       </div>
+      {% endfor %}
     </div>
   </div>
-  {% endfor %}
-</div>
-{% endif %}
+  {% endif %}
 
-{% if pairs %}
-<div class="matches-list">
-  <h3>All Potential Matches</h3>
-  {% for pair in pairs %}
-  <div class="match-card">
-    <div class="found-item">
-      <h4>Found Item #{{ pair.found }}</h4>
-      <img src="{{ url_for('uploaded_file', filename=pair.found_img.split('/')[-1]) }}" alt="Found item">
+  {% if pairs %}
+  <div class="pairs-section">
+    <div class="section-title">
+      <i class="ri-git-merge-line"></i>
+      <h2>All Potential Matches</h2>
+      <span class="badge badge-info">{{ pairs|length }} Pair{{ 's' if pairs|length != 1 else '' }}</span>
     </div>
-    <div class="lost-item">
-      <h4>Lost Item #{{ pair.lost }}</h4>
-      <img src="{{ url_for('uploaded_file', filename=pair.lost_img.split('/')[-1]) }}" alt="Lost item">
-      <p><strong>Score:</strong> {{ "%.2f"|format(pair.score) }}</p>
-      <div class="match-actions">
-        <button class="confirm-btn" data-report="{{ pair.found }}" onclick="confirmReport(this)">Confirm Found</button>
-        <button class="confirm-btn" data-report="{{ pair.lost }}" onclick="confirmReport(this)">Confirm Lost</button>
+
+    <div class="pairs-grid">
+      {% for pair in pairs %}
+      <div class="match-pair-card">
+        <div class="pair-header">
+          <i class="ri-arrow-left-right-line"></i>
+          <span>Potential Match</span>
+          <div class="match-score-badge">
+            {{ "%.0f"|format([0, 100 - pair.score * 10]|max|min(100)) }}% Match
+          </div>
+        </div>
+        
+        <div class="pair-items">
+          <div class="pair-item found-item">
+            <div class="item-label">
+              <i class="ri-hand-heart-line"></i>
+              <span>Found Item</span>
+            </div>
+            <div class="item-image">
+              <img src="{{ url_for('uploaded_file', filename=pair.found_img.split('/')[-1]) }}" alt="Found item">
+            </div>
+            <div class="item-id">ID: #{{ pair.found }}</div>
+          </div>
+          
+          <div class="pair-connector">
+            <i class="ri-link"></i>
+            <div class="connector-line"></div>
+            <span class="score-text">{{ "%.2f"|format(pair.score) }}</span>
+          </div>
+          
+          <div class="pair-item lost-item">
+            <div class="item-label">
+              <i class="ri-error-warning-line"></i>
+              <span>Lost Item</span>
+            </div>
+            <div class="item-image">
+              <img src="{{ url_for('uploaded_file', filename=pair.lost_img.split('/')[-1]) }}" alt="Lost item">
+            </div>
+            <div class="item-id">ID: #{{ pair.lost }}</div>
+          </div>
+        </div>
+        
+        <div class="pair-actions">
+          <button class="button button-primary confirm-btn" data-report="{{ pair.found }}" onclick="confirmReport(this)">
+            <i class="ri-checkbox-circle-line"></i>
+            Confirm Found
+          </button>
+          <button class="button button-secondary confirm-btn" data-report="{{ pair.lost }}" onclick="confirmReport(this)">
+            <i class="ri-checkbox-circle-line"></i>
+            Confirm Lost
+          </button>
+        </div>
       </div>
+      {% endfor %}
     </div>
   </div>
-  {% endfor %}
-</div>
-{% endif %}
+  {% endif %}
 
-{% if not suggestions and not pairs %}
-<p>No matches found yet.</p>
-{% endif %}
+  {% if not suggestions and not pairs %}
+  <div class="empty-state">
+    <div class="empty-icon">
+      <i class="ri-inbox-line"></i>
+    </div>
+    <h2>No Matches Found</h2>
+    <p>We haven't found any potential matches yet. Try submitting more reports or check back later.</p>
+    <div class="empty-actions">
+      <a href="{{ url_for('submit_lost') }}" class="button button-primary">
+        <i class="ri-error-warning-line"></i>
+        Report Lost Item
+      </a>
+      <a href="{{ url_for('submit_found') }}" class="button button-secondary">
+        <i class="ri-hand-heart-line"></i>
+        Report Found Item
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_scripts %}
 <script>
-async function confirmReport(btn){
+async function confirmReport(btn) {
   const reportId = btn.getAttribute('data-report');
-  if(!reportId){ alert('No report id'); return; }
+  if (!reportId) {
+    showNotification('No report ID found', 'error');
+    return;
+  }
+  
+  const originalContent = btn.innerHTML;
   btn.disabled = true;
-  btn.textContent = 'Confirming...';
-  try{
+  btn.innerHTML = '<i class="ri-loader-4-line rotating"></i> Confirming...';
+  
+  try {
     const res = await fetch('/admin/confirm', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({report_id: parseInt(reportId), val: 1})
     });
+    
     const j = await res.json();
-    if(j.ok){ btn.textContent = 'Confirmed'; }
-    else { btn.textContent = 'Failed'; btn.disabled = false; }
-  }catch(err){ console.error(err); btn.textContent='Error'; btn.disabled=false; }
+    
+    if (j.ok) {
+      btn.innerHTML = '<i class="ri-check-line"></i> Confirmed';
+      btn.classList.remove('button-primary');
+      btn.classList.add('button-success');
+      showNotification('Match confirmed successfully!', 'success');
+    } else {
+      btn.innerHTML = originalContent;
+      btn.disabled = false;
+      showNotification('Failed to confirm match', 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    btn.innerHTML = originalContent;
+    btn.disabled = false;
+    showNotification('An error occurred', 'error');
+  }
+}
+
+function viewDetails(itemId) {
+  // Navigate to item details or show modal with item information
+  // For now, show a notification that this feature is coming soon
+  showNotification(`Item details view coming soon!`, 'info');
+}
+
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type} fade-in`;
+  
+  // Create elements safely
+  const messageText = document.createTextNode(message);
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'alert-close';
+  closeBtn.onclick = () => notification.remove();
+  closeBtn.innerHTML = '<i class="ri-close-line"></i>';
+  
+  notification.appendChild(messageText);
+  notification.appendChild(closeBtn);
+  
+  // Try multiple possible container selectors
+  const container = document.querySelector('.main-content') || 
+                     document.querySelector('.matches-container') || 
+                     document.querySelector('main') || 
+                     document.body;
+  
+  container.insertBefore(notification, container.firstChild);
+  
+  setTimeout(() => {
+    notification.style.animation = 'fadeOut 0.3s ease-out forwards';
+    setTimeout(() => notification.remove(), 300);
+  }, 5000);
 }
 </script>
+
+<style>
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>
 {% endblock %}

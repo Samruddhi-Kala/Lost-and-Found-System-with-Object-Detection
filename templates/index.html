@@ -1,34 +1,154 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="hero">
-  <h2>Lost Something on Campus?</h2>
-  <p>Our AI-powered system helps you find lost items quickly and efficiently.</p>
-  
-  <div class="actions">
-    <a href="{{ url_for('submit_lost') }}" class="button">I Lost an Item</a>
-    <a href="{{ url_for('submit_found') }}" class="button secondary">I Found an Item</a>
+<div class="hero-section">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <i class="ri-flashlight-line"></i>
+      <span>AI-Powered Detection</span>
+    </div>
+    <h1 class="hero-title">Lost Something on Campus?</h1>
+    <p class="hero-subtitle">Our intelligent system uses advanced AI and computer vision to help you find lost items quickly and efficiently. Report what you've lost or found, and let technology do the rest.</p>
+    
+    <div class="hero-actions">
+      <a href="{{ url_for('submit_lost') }}" class="button button-primary button-large">
+        <i class="ri-error-warning-line"></i>
+        <span>I Lost an Item</span>
+      </a>
+      <a href="{{ url_for('submit_found') }}" class="button button-secondary button-large">
+        <i class="ri-hand-heart-line"></i>
+        <span>I Found an Item</span>
+      </a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat-item">
+        <i class="ri-search-eye-line"></i>
+        <div class="stat-content">
+          <strong>Smart Matching</strong>
+          <span>AI-powered object detection</span>
+        </div>
+      </div>
+      <div class="stat-item">
+        <i class="ri-time-line"></i>
+        <div class="stat-content">
+          <strong>Fast Results</strong>
+          <span>Instant match notifications</span>
+        </div>
+      </div>
+      <div class="stat-item">
+        <i class="ri-shield-check-line"></i>
+        <div class="stat-content">
+          <strong>Secure</strong>
+          <span>Your data is protected</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <section id="about" class="about-section">
-  <h3>How It Works</h3>
+  <div class="section-header">
+    <h2>How It Works</h2>
+    <p>Our simple 4-step process helps reunite you with your lost items</p>
+  </div>
+  
   <div class="steps-grid">
-    <div class="step">
-      <h4>1. Report</h4>
-      <p>Upload a photo and description of your lost item or something you found</p>
+    <div class="step-card">
+      <div class="step-icon">
+        <i class="ri-upload-cloud-line"></i>
+        <span class="step-number">1</span>
+      </div>
+      <h3>Report Your Item</h3>
+      <p>Upload a photo and provide a detailed description of your lost item or something you found on campus</p>
+      <div class="step-arrow"><i class="ri-arrow-right-line"></i></div>
     </div>
-    <div class="step">
-      <h4>2. AI Analysis</h4>
-      <p>Our AI analyzes images and descriptions to find potential matches</p>
+    
+    <div class="step-card">
+      <div class="step-icon">
+        <i class="ri-robot-line"></i>
+        <span class="step-number">2</span>
+      </div>
+      <h3>AI Analysis</h3>
+      <p>Our advanced AI analyzes images using object detection and matches descriptions to find potential matches</p>
+      <div class="step-arrow"><i class="ri-arrow-right-line"></i></div>
     </div>
-    <div class="step">
-      <h4>3. Match</h4>
-      <p>Get notified when we find a match between lost and found items</p>
+    
+    <div class="step-card">
+      <div class="step-icon">
+        <i class="ri-links-line"></i>
+        <span class="step-number">3</span>
+      </div>
+      <h3>Get Matched</h3>
+      <p>Receive instant notifications when we find a match between lost and found items in our database</p>
+      <div class="step-arrow"><i class="ri-arrow-right-line"></i></div>
     </div>
-    <div class="step">
-      <h4>4. Retrieve</h4>
-      <p>Verify and retrieve your item through our simple process</p>
+    
+    <div class="step-card">
+      <div class="step-icon">
+        <i class="ri-checkbox-circle-line"></i>
+        <span class="step-number">4</span>
+      </div>
+      <h3>Retrieve Your Item</h3>
+      <p>Verify ownership and retrieve your item through our simple and secure process</p>
+    </div>
+  </div>
+</section>
+
+<section class="features-section">
+  <div class="section-header">
+    <h2>Powerful Features</h2>
+    <p>Advanced technology to help you find what matters</p>
+  </div>
+  
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i class="ri-camera-lens-line"></i>
+      </div>
+      <h3>Object Detection</h3>
+      <p>YOLOv8-powered detection identifies items in photos with high accuracy</p>
+    </div>
+    
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i class="ri-text-snippet-line"></i>
+      </div>
+      <h3>OCR Technology</h3>
+      <p>Extract text from images to help identify items with labels or serial numbers</p>
+    </div>
+    
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i class="ri-image-line"></i>
+      </div>
+      <h3>Image Similarity</h3>
+      <p>FAISS-powered similarity search finds visually similar items instantly</p>
+    </div>
+    
+    <div class="feature-card">
+      <div class="feature-icon">
+        <i class="ri-notification-badge-line"></i>
+      </div>
+      <h3>Real-time Alerts</h3>
+      <p>Get notified immediately when potential matches are found</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-content">
+    <h2>Ready to Find Your Lost Item?</h2>
+    <p>Join our community and let AI technology help reunite you with your belongings</p>
+    <div class="cta-actions">
+      <a href="{{ url_for('submit_lost') }}" class="button button-large button-outline-light">
+        <i class="ri-add-circle-line"></i>
+        <span>Report Now</span>
+      </a>
+      <a href="{{ url_for('view_matches') }}" class="button button-large button-outline-light">
+        <i class="ri-search-line"></i>
+        <span>View Matches</span>
+      </a>
     </div>
   </div>
 </section>

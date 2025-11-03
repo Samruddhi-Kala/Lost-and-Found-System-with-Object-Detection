@@ -185,3 +185,65 @@ function showNotification(message, type = 'info') {
         setTimeout(() => notification.remove(), 300);
     }, 5000);
 }
+
+// Shared file upload preview functionality
+function initializeFileUploadPreview(inputId, previewId, labelSelector) {
+    const fileInput = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const uploadLabel = document.querySelector(labelSelector);
+    
+    if (!fileInput || !preview) return;
+    
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                // Create elements safely to prevent XSS
+                const container = document.createElement('div');
+                container.className = 'preview-image-container';
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = 'Preview';
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-image';
+                removeBtn.onclick = () => removeFilePreview(inputId, previewId, labelSelector);
+                removeBtn.innerHTML = '<i class="ri-close-circle-line"></i>';
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.className = 'file-info';
+                fileInfo.innerHTML = '<i class="ri-file-image-line"></i>';
+                const fileNameSpan = document.createElement('span');
+                fileNameSpan.textContent = file.name; // Use textContent to prevent XSS
+                fileInfo.appendChild(fileNameSpan);
+                
+                container.appendChild(img);
+                container.appendChild(removeBtn);
+                container.appendChild(fileInfo);
+                
+                preview.innerHTML = '';
+                preview.appendChild(container);
+                
+                if (uploadLabel) uploadLabel.style.display = 'none';
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
+function removeFilePreview(inputId, previewId, labelSelector) {
+    const fileInput = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const uploadLabel = document.querySelector(labelSelector);
+    
+    if (fileInput) fileInput.value = '';
+    if (preview) {
+        preview.innerHTML = '';
+        preview.style.display = 'none';
+    }
+    if (uploadLabel) uploadLabel.style.display = 'flex';
+}
